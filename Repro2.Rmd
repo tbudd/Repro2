@@ -6,13 +6,27 @@ output: html_document
 ---
 ## Synopsis:
 
+This project is the 2nd of two peer assessments in the Johns Hopkins Reproducible Research class. It answers two questions involving the U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database:
+
+1. Across the United States, which types of events are most harmful with respect to population health?
+
+2. Across the United States, which types of events have the greatest economic consequences?
+
+### Data
+
+The data for this assignment come in the form of a comma-separated-value file compressed via the bzip2 algorithm to reduce its size. The file can be downloaded from the course web site:
+
+[Storm Data [47Mb]](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2)
+
+[Documentation for the storm data](https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2Fpd01016005curr.pdf)
+
 ## Data Processing:
 
 Download and upzip the storm weather data from NOAA.
 ```{r, cache=TRUE}
 ###download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2",
 ###              "repdata_data_StormData.csv.bz2")
-###StormData<-read.csv(bzfile("repdata_data_StormData.csv.bz2"),stringsAsFactors = FALSE)
+StormData<-read.csv(bzfile("repdata_data_StormData.csv.bz2"),stringsAsFactors = FALSE)
 ```
 Create the top five fatalities table by event type.
 ```{r, cache=TRUE}
@@ -26,16 +40,40 @@ InjByEv<-aggregate(StormData$INJURIES,list(StormData$EVTYPE),FUN=sum) ## Aggrega
 colnames(InjByEv)<-c("EventType","Injuries") ## Give columns descriptive names
 InjByEvTop<-InjByEv[InjByEv$Injuries>3000,] ## Limit table to top 5
 ```
-Create the property damage table
+Create the top four property damage by event type.
+```{r, cache=TRUE}
+PropDmg<-StormData[StormData$PROPDMGEXP=="B",] ## Extract only the property damage in the billions
+PrpByEv<-aggregate(PropDmg$PROPDMG,list(PropDmg$EVTYPE),FUN=sum) ## Aggregate by event type
+colnames(PrpByEv)<-c("EventType","Damage") ## Give columns descriptive names
+PrpByEvTop<-PrpByEv[PrpByEv$Damage>5.5,] ## Limit table to top 4
+```
+Create the top five crop damage by event type.
+```{r, cache=TRUE}
+CropDmg<-StormData[StormData$CROPDMGEXP=="B",] ## Extract only the property damage in the billions
+CrpByEv<-aggregate(CropDmg$CROPDMG,list(CropDmg$EVTYPE),FUN=sum) ## Aggregate by event type
+colnames(CrpByEv)<-c("EventType","Damage") ## Give columns descriptive names
+CrpByEvTop<-CrpByEv[CrpByEv$Damage>0.2,] ## Limit table to top 5
+```
 
 ## Results:
-
+Tornadoes were the number one cause of harm to population health (death or injury) by event type in the NOAA Storm data. Top five event types for fatalies and injuries are plotted below.
 ```{r}
 library(ggplot2)
 qplot(as.factor(FatByEvTop$EventType),FatByEvTop$Fatalities,ylab="Fatalities",xlab="",
-      main="NOAA Storm Data Fatalities by Event Type Top 5")
+      main="NOAA Storm Data Fatalities by Event Type Top 5",size=I(3))
 qplot(as.factor(InjByEvTop$EventType),InjByEvTop$Injuries,ylab="Fatalities",xlab="",
-      main="NOAA Storm Data Injuries by Event Type Top 5")
+      main="NOAA Storm Data Injuries by Event Type Top 5",size=I(3))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Floods were the number on cause of property damage (economic consequence).
+```{r}
+library(ggplot2)
+qplot(as.factor(PrpByEvTop$EventType),PrpByEvTop$Damage,ylab="Damage (USD Billions)",xlab="",
+      main="NOAA Storm Data Property Damage by Event Type Top 4", size=I(3))
+```
+
+
+To show crop damage was insignificant compared with property damage, we take the max damage (Billions USD) from the crop damage table.
+```{r, cache=TRUE}
+max(CrpByEvTop$Damage)
+```
