@@ -1,0 +1,41 @@
+---
+title: "NOAA Severe Weather Health and Economic Cost"
+author: "tbudd"
+date: "December 19, 2015"
+output: html_document
+---
+## Synopsis:
+
+## Data Processing:
+
+Download and upzip the storm weather data from NOAA.
+```{r, cache=TRUE}
+###download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2",
+###              "repdata_data_StormData.csv.bz2")
+###StormData<-read.csv(bzfile("repdata_data_StormData.csv.bz2"),stringsAsFactors = FALSE)
+```
+Create the top five fatalities table by event type.
+```{r, cache=TRUE}
+FatByEv<-aggregate(StormData$FATALITIES,list(StormData$EVTYPE),FUN=sum) ## Aggregate by event type
+colnames(FatByEv)<-c("EventType","Fatalities") ## Give columns descriptive names
+FatByEvTop<-FatByEv[FatByEv$Fatalities>750,] ## Limit table to top 5
+```
+Create the top five injuries table by event type.
+```{r, cache=TRUE}
+InjByEv<-aggregate(StormData$INJURIES,list(StormData$EVTYPE),FUN=sum) ## Aggregate by event type
+colnames(InjByEv)<-c("EventType","Injuries") ## Give columns descriptive names
+InjByEvTop<-InjByEv[InjByEv$Injuries>3000,] ## Limit table to top 5
+```
+Create the property damage table
+
+## Results:
+
+```{r}
+library(ggplot2)
+qplot(as.factor(FatByEvTop$EventType),FatByEvTop$Fatalities,ylab="Fatalities",xlab="",
+      main="NOAA Storm Data Fatalities by Event Type Top 5")
+qplot(as.factor(InjByEvTop$EventType),InjByEvTop$Injuries,ylab="Fatalities",xlab="",
+      main="NOAA Storm Data Injuries by Event Type Top 5")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
